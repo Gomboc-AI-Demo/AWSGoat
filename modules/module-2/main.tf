@@ -515,3 +515,7 @@ resource "aws_s3_bucket" "bucket_tf_files" {
 output "ad_Target_URL" {
   value = "${aws_alb.application_load_balancer.dns_name}:80/login.php"
 }
+resource "aws_s3_bucket_public_access_block" "my_aws_s3_bucket_public_access_block_bucket_tf_files" {
+  ignore_public_acls = true
+  bucket             = aws_s3_bucket.bucket_tf_files.id
+}
