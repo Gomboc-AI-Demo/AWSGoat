@@ -21,6 +21,10 @@ data "archive_file" "lambda_zip" {
 }
 
 resource "aws_lambda_function" "react_lambda_app" {
+  tracing_config {
+    mode = "Active"
+  }
+
   filename      = "resources/lambda/out/reactapp.zip"
   function_name = "blog-application"
   handler       = "index.handler"
@@ -3081,6 +3085,10 @@ resource "aws_lambda_layer_version" "lambda_layer" {
 }
 
 resource "aws_lambda_function" "lambda_ba_data" {
+  tracing_config {
+    mode = "Active"
+  }
+
   filename      = "resources/lambda/out/data_app.zip"
   function_name = "blog-application-data"
   handler       = "lambda_function.lambda_handler"
@@ -3206,7 +3214,7 @@ resource "aws_s3_bucket_public_access_block" "bucket_upload" {
 
   block_public_acls       = false
   block_public_policy     = false
-  ignore_public_acls      = false
+  ignore_public_acls      = true
   restrict_public_buckets = false
 }
 
@@ -3219,8 +3227,8 @@ resource "aws_s3_bucket_ownership_controls" "bucket_upload" {
 
 resource "aws_s3_bucket_acl" "bucket_upload" {
   depends_on = [
-	aws_s3_bucket_public_access_block.bucket_upload,
-	aws_s3_bucket_ownership_controls.bucket_upload,
+    aws_s3_bucket_public_access_block.bucket_upload,
+    aws_s3_bucket_ownership_controls.bucket_upload,
   ]
 
   bucket = aws_s3_bucket.bucket_upload.id
@@ -3290,7 +3298,7 @@ resource "aws_s3_bucket_public_access_block" "dev" {
 
   block_public_acls       = false
   block_public_policy     = false
-  ignore_public_acls      = false
+  ignore_public_acls      = true
   restrict_public_buckets = false
 }
 
@@ -3303,8 +3311,8 @@ resource "aws_s3_bucket_ownership_controls" "dev" {
 
 resource "aws_s3_bucket_acl" "dev" {
   depends_on = [
-	aws_s3_bucket_public_access_block.dev,
-	aws_s3_bucket_ownership_controls.dev,
+    aws_s3_bucket_public_access_block.dev,
+    aws_s3_bucket_ownership_controls.dev,
   ]
 
   bucket = aws_s3_bucket.dev.id
@@ -3367,7 +3375,7 @@ resource "aws_s3_bucket_public_access_block" "bucket_temp" {
 
   block_public_acls       = false
   block_public_policy     = false
-  ignore_public_acls      = false
+  ignore_public_acls      = true
   restrict_public_buckets = false
 }
 
@@ -3380,8 +3388,8 @@ resource "aws_s3_bucket_ownership_controls" "bucket_temp" {
 
 resource "aws_s3_bucket_acl" "bucket_temp" {
   depends_on = [
-	aws_s3_bucket_public_access_block.bucket_temp,
-	aws_s3_bucket_ownership_controls.bucket_temp,
+    aws_s3_bucket_public_access_block.bucket_temp,
+    aws_s3_bucket_ownership_controls.bucket_temp,
   ]
 
   bucket = aws_s3_bucket.bucket_temp.id
@@ -3590,6 +3598,7 @@ data "aws_ami" "goat_ami" {
 }
 
 resource "aws_instance" "goat_instance" {
+  monitoring           = true
   ami                  = data.aws_ami.goat_ami.id
   instance_type        = "t2.micro"
   iam_instance_profile = aws_iam_instance_profile.goat_iam_profile.name
@@ -3606,6 +3615,10 @@ resource "aws_instance" "goat_instance" {
 
 
 resource "aws_dynamodb_table" "users_table" {
+  server_side_encryption {
+    enabled = true
+  }
+
   name           = "blog-users"
   billing_mode   = "PROVISIONED"
   read_capacity  = 2
@@ -3618,6 +3631,10 @@ resource "aws_dynamodb_table" "users_table" {
   }
 }
 resource "aws_dynamodb_table" "posts_table" {
+  server_side_encryption {
+    enabled = true
+  }
+
   name           = "blog-posts"
   billing_mode   = "PROVISIONED"
   read_capacity  = 2
@@ -3708,4 +3725,7 @@ EOF
 output "app_url" {
   value = "${aws_api_gateway_stage.api.invoke_url}/react"
 }
-
+resource "aws_s3_bucket_public_access_block" "my_aws_s3_bucket_public_access_block_bucket_tf_files" {
+  ignore_public_acls = true
+  bucket             = aws_s3_bucket.bucket_tf_files.id
+}
